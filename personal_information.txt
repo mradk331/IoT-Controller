@@ -1,0 +1,10 @@
+Homer Simpson
+123 Fake Street
+Springfield, PA
+Medical Status: Diabetes
+
+Mikey Mouse
+1933 - Don’t Sue Avenue
+Disneyland, California
+Medical Status: Kidney Failure
+

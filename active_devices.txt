@@ -1,0 +1,5 @@
+Webcam localhost 9000
+Toaster localhost 9001
+TV localhost 9002
+Refrigerator localhost 9003
+Thermostat localhost 9004
