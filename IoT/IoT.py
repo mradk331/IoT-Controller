@@ -86,7 +86,7 @@ def request(client_socket, port):
         if not os.path.isfile(filename):
 
             sys.stdout.write(
-                current_time() + " Status: error, file client is trying to read does not exist\n")
+                current_time() + " Status: error, file controller is trying to read does not exist\n")
 
             message = encrypt_message(("Error, the file " + filename
                                        + " you are trying to read does not exist. Disconnecting..."))
@@ -95,7 +95,7 @@ def request(client_socket, port):
 
         else:
 
-            # Send file-size to client
+            # Send file-size to controller
             file_size = os.stat(filename).st_size
             file_size = str(file_size)
 
@@ -152,11 +152,11 @@ def data_exchange(client_socket, operation, filename):
 
     if operation == "read":
 
-        # Open the file, read chunks, encrypt and send them to the client
+        # Open the file, read chunks, encrypt and send them to the controller
         file = open(filename, 'rb')
         line = file.read(BLOCK_SIZE - 1)
 
-        # While there is a line read from the file, keep sending it as a chunk to the client
+        # While there is a line read from the file, keep sending it as a chunk to the controller
         while line:
 
             message = encrypt_message(line.decode("UTF-8"))
@@ -177,7 +177,7 @@ def data_exchange(client_socket, operation, filename):
         client_socket.sendall(message)
         client_socket.close()
 
-    # Otherwise we write to server from client side
+    # Otherwise we write to server from controller side
     else:
 
         file_size = 0
@@ -214,7 +214,7 @@ def data_exchange(client_socket, operation, filename):
                 # than or equal to the available disk size, indicate error and disconnect
                 else:
                     sys.stderr.write(
-                        current_time() + " Status: error, client trying to write a file that is larger "
+                        current_time() + " Status: error, controller trying to write a file that is larger "
                                          "than the available disk size.\n")
 
                     message = encrypt_message("Error, you are trying to upload a file that "
@@ -228,7 +228,7 @@ def data_exchange(client_socket, operation, filename):
 
                 file.write(decrypt_chunk.encode("UTF-8"))
 
-                # Can't send too fast to client - hence delay
+                # Can't send too fast to controller - hence delay
                 time.sleep(.1)
 
                 sys.stdout.write(current_time() + " Status: operation successful\n")
@@ -242,7 +242,7 @@ def data_exchange(client_socket, operation, filename):
             # than or equal to the available disk size, indicate error and disconnect
             else:
                 sys.stderr.write(
-                    current_time() + " Status: error, client trying to write a file that is larger "
+                    current_time() + " Status: error, controller trying to write a file that is larger "
                                      "than the available disk size.\n")
 
                 message = encrypt_message("Error, you are trying to upload a file that "
@@ -255,7 +255,7 @@ def data_exchange(client_socket, operation, filename):
         file.close()
 
 
-# Function used to encrypt every message sent subsequently after the first message to the client
+# Function used to encrypt every message sent subsequently after the first message to the controller
 def encrypt_message(message):
 
     global cipher
@@ -327,8 +327,8 @@ def current_time():
     return curr_time.strftime("%H:%M:%S")
 
 
-# Function responsible for sending a random string challenge, receiving the response from the client,
-# and authenticating the client to move onto the response request from client
+# Function responsible for sending a random string challenge, receiving the response from the controller,
+# and authenticating the controller to move onto the response request from controller
 def authentication(secret_key, client_socket):
 
     authenticated = False
@@ -345,10 +345,10 @@ def authentication(secret_key, client_socket):
     # Delay sending the challenge by .2 seconds in the case of receiving the challenge with the previous success ack
     time.sleep(0.2)
 
-    # Send the random string challenge to the client
+    # Send the random string challenge to the controller
     client_socket.sendall(encrypted_message)
 
-    # Receive an encrypted SHA256 HMAC hexadecimal digest challenge response by the client
+    # Receive an encrypted SHA256 HMAC hexadecimal digest challenge response by the controller
     response = client_socket.recv(BLOCK_SIZE)
 
     # Decrypt the response
@@ -357,22 +357,22 @@ def authentication(secret_key, client_socket):
     # Strip of any special characters
     response = response.strip()
 
-    # We hash the server secret key with the same random_string and obtain the hexadecimal digest
+    # We hash the secret key with the same random_string and obtain the hexadecimal digest
     secret_key_hash = hmac.new(secret_key, msg=random_string.encode("UTF-8"), digestmod=hashlib.sha256)
 
     # Obtain hex-digest
     secret_key_digest = secret_key_hash.hexdigest()
 
-    # If the digest we computed is the same as the one provided by the response of the client, then the client has the
+    # If the digest we computed is the same as the one provided by the response of the controller, then the controller has the
     # correct secret key
     if secret_key_digest == response:
 
-        # Send success to client
+        # Send success to IoT controller
         success_message = encrypt_message("Successfully authenticated")
 
         client_socket.sendall(success_message)
 
-        # Client is now authenticated
+        # controller is now authenticated
         authenticated = True
 
         return authenticated
@@ -383,7 +383,7 @@ def authentication(secret_key, client_socket):
 
         client_socket.sendall(failure_message)
 
-        # Disconnect the client
+        # Disconnect the Controller
         client_socket.close()
 
         return authenticated
@@ -416,7 +416,7 @@ if __name__ == "__main__":
     # Listen to incoming messages
     server_socket.listen(5)
 
-    # We keep looping and accepting client connection
+    # We keep looping and accepting Iot controller connection
     while 1:
 
         (client_socket, client_address) = server_socket.accept()
@@ -431,7 +431,7 @@ if __name__ == "__main__":
             print("DATA : " + i)
 
         if len(data) != 2:
-            sys.stdout.write(current_time() + " Error: Cipher or nonce not provided. Disconnecting client.\n")
+            sys.stdout.write(current_time() + " Error: Cipher or nonce not provided. Disconnecting controller.\n")
 
             client_socket.sendall("Error: cipher or nonce not provided. Disconnecting...".encode("UTF-8"))
             client_socket.close()
@@ -459,7 +459,7 @@ if __name__ == "__main__":
             # Check if incorrect cipher was provided
             if cipher != "aes128" and cipher != "aes256" and cipher != "null":
 
-                sys.stdout.write(current_time() + " Status: error, invalid cipher provided. Disconnecting client.\n")
+                sys.stdout.write(current_time() + " Status: error, invalid cipher provided. Disconnecting controller.\n")
 
                 client_socket.sendall(("Error " + cipher + " is not supported. Disconnecting...").encode("UTF-8"))
                 client_socket.close()
@@ -484,18 +484,18 @@ if __name__ == "__main__":
                     cipher_function = Cipher(algorithms.AES(session_key.encode("UTF-8")), modes.CBC(init_vector.encode("UTF-8")),
                                              backend=default_backend())
 
-                # Indicate success to user
+                # Indicate success to Controller
                 success = encrypt_message("Successfully received cipher.")
                 client_socket.sendall(success)
 
-                # Authenticate the client
+                # Authenticate the Controller
                 authenticated = authentication(key, client_socket)
 
-                # If the client is authenticated, get the file request
+                # If the controller is authenticated, get the file request
                 if authenticated:
 
                     request(client_socket, port)
 
                 else:
                     sys.stdout.write(
-                        current_time() + " Status: error, client was not authenticated. Secret keys not matching.\n")
+                        current_time() + " Status: error, Controller was not authenticated. Secret keys not matching.\n")

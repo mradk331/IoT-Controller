@@ -71,14 +71,14 @@ def decrypt_message(message):
         return message.decode("UTF-8")
 
 
-# Responsible for reading the file from the server to standard output
+# Responsible for reading the file from the device to standard output
 def read_file(command, filename, client_socket):
 
     try:
         message = encrypt_message((command + ":" + filename).encode("UTF-8"))
         client_socket.sendall(message)
 
-        # Receive server acknowledgement and file size
+        # Receive device acknowledgement and file size
         ack_size = client_socket.recv(BLOCK_SIZE)
         ack_size = decrypt_message(ack_size)
 
@@ -96,7 +96,7 @@ def read_file(command, filename, client_socket):
 
             file_output = bytearray()
 
-            # Keep reading chunk data from the server and writing it to stdout
+            # Keep reading chunk data from the device and writing it to stdout
             while size_of_file_counter > 0:
 
                 # We don't wanna read in 1024 if there is less than 1024 bytes left
@@ -129,18 +129,18 @@ def read_file(command, filename, client_socket):
 
             file.close()
 
-            # Write read data from server to standard output
+            # Write read data from device to standard output
             print(current_time() + " Read information: \n")
             sys.stdout.write(file_output.decode(encoding='UTF-8'))
             print(current_time() + " Collected IoT Information has been stored in a database.")
 
     except socket.error as e:
 
-        sys.stderr.write(current_time() + " Server connection closing...\n")
+        sys.stderr.write(current_time() + " device connection closing...\n")
         quit()
 
 
-# Responsible for reading a file from standard input and sending (writing) it to the server, chunk by chunk
+# Responsible for reading a file from standard input and sending (writing) it to the device, chunk by chunk
 # whilst not reading into memory
 def update_file(command, client_socket, patch_file):
 
@@ -151,7 +151,7 @@ def update_file(command, client_socket, patch_file):
         message = encrypt_message((command + ":" + patch_file + ".patch").encode("UTF-8"))
         client_socket.sendall(message)
 
-        # Receive server acknowledgement
+        # Receive device acknowledgement
         ack = client_socket.recv(BLOCK_SIZE)
         ack = decrypt_message(ack)
 
@@ -191,7 +191,7 @@ def update_file(command, client_socket, patch_file):
                 quit()
                 
 
-        # While the content length read in from stdin is a 1024, keep getting chunk and sending it to the server
+        # While the content length read in from stdin is a 1024, keep getting chunk and sending it to the device
         while len(content) == BLOCK_SIZE:
 
             client_socket.sendall(content)
@@ -236,7 +236,7 @@ def update_file(command, client_socket, patch_file):
         quit()
 
 
-# Creates a hex digest response of the random string challenge obtained by the server
+# Creates a hex digest response of the random string challenge obtained by the IoT device
 def challenge_response(secret_key, challenge):
 
     # Encode the key into bytes
@@ -465,15 +465,15 @@ if __name__ == "__main__":
         cipher_function = Cipher(algorithms.AES(session_key.encode("UTF-8")), modes.CBC(init_vector.encode("UTF-8")),
                                  backend=default_backend())
 
-    # Send the cipher and nonce to the server
+    # Send the cipher and nonce to the device
     client_socket.sendall((cipher + ":" + nonce).encode("UTF-8"))
 
-    # Receive server acknowledgement
+    # Receive device acknowledgement
     ack = client_socket.recv(BLOCK_SIZE)
     ack = decrypt_message(ack)
     sys.stderr.write(current_time() + " " + ack + "\n")
 
-    # Get the random string challenge from the server and create a response
+    # Get the random string challenge from the device and create a response
     challenge = client_socket.recv(BLOCK_SIZE)
     challenge = challenge.strip()
 
@@ -482,7 +482,7 @@ if __name__ == "__main__":
     digest_response = challenge_response(key, challenge.encode("UTF-8"))
     digest_response = encrypt_message(digest_response.encode("UTF-8"))
 
-    # Send the response back to the server
+    # Send the response back to the device
     client_socket.sendall(digest_response)
 
     # Receive authentication success or failure
@@ -503,7 +503,7 @@ if __name__ == "__main__":
     identity_response = identity_response.split("_")
 
 
-    # Send the filename and the operation we wish to do upon it to the server
+    # Send the filename and the operation we wish to do upon it to the device
     if command == "update":
 
 
