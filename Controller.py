@@ -392,7 +392,13 @@ if __name__ == "__main__":
 
         # Set a username and password
         usrname = input("Set Username:  ")
+
         psword = input("Set Password:  ")
+
+        while (len (psword) < 8):
+
+            psword = input("Try again, password must be atleast 8 charcters:  ")
+
         m = hashlib.sha256()
         m.update((usrname + psword).encode('utf-8'))
         m.hexdigest()
