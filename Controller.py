@@ -1,3 +1,5 @@
+# Authors: Rumen Kasabov, Michael Radke
+
 # Controller software which interacts with IoT devices to securely collect user information
 # and write updates to each device.
 

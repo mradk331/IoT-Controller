@@ -1,3 +1,5 @@
+# Authors: Rumen Kasabov, Michael Radke
+
 # IoT device software used for transferring private information and receiving updates
 # to/from a centralized controller.
 
