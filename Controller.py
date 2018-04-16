@@ -18,14 +18,13 @@ import os.path
 
 BLOCK_SIZE = 1024
 
-# Function used to encrypt every message sent subsequently after the first message from the client
+# Function used to encrypt every message sent subsequently after the first message from the IoT device
 def encrypt_message(message):
 
     global cipher
     global cipher_function
 
     if cipher == "aes128" or cipher == "aes256":
-        #message = message.encode("UTF-8")
 
         # Initialize the encryptor
         encryptor = cipher_function.encryptor()
@@ -161,7 +160,6 @@ def update_file(command, client_socket, patch_file):
         # pad the content when encrypting and depad when decrypting
 
         if cipher != "null":
-            #content = sys.stdin.buffer.read(BLOCK_SIZE - 1)
 
             file = open(patch_file + ".patch", "rb")
             try:
@@ -169,7 +167,7 @@ def update_file(command, client_socket, patch_file):
 
             except:
 
-                sys.stderr.write(current_time() + " File read error. Client connection closing...\n")
+                sys.stderr.write(current_time() + " File read error. IoT device connection closing...\n")
                 quit()
 
 
@@ -177,8 +175,6 @@ def update_file(command, client_socket, patch_file):
             content = encrypt_message(content)
 
         else:
-            #content = sys.stdin.buffer.read(BLOCK_SIZE)
-
 
             file = open(patch_file + ".patch", "rb")
             try:
@@ -187,7 +183,7 @@ def update_file(command, client_socket, patch_file):
 
             except:
 
-                sys.stderr.write(current_time() + " File read error. Client connection closing...\n")
+                sys.stderr.write(current_time() + " File read error. IoT device connection closing...\n")
                 quit()
                 
 
@@ -197,7 +193,6 @@ def update_file(command, client_socket, patch_file):
             client_socket.sendall(content)
 
             if cipher != "null":
-                #content = sys.stdin.buffer.read(BLOCK_SIZE - 1)
 
                 try:
                     content = file.read(BLOCK_SIZE - 1)
@@ -205,13 +200,12 @@ def update_file(command, client_socket, patch_file):
 
                 except:
 
-                    sys.stderr.write(current_time() + " File read error. Client connection closing...\n")
+                    sys.stderr.write(current_time() + " File read error. IoT device connection closing...\n")
                     quit()
                 
                 content = encrypt_message(content)
 
             else:
-                #content = sys.stdin.buffer.read(BLOCK_SIZE)
 
 
                 try:
@@ -220,7 +214,7 @@ def update_file(command, client_socket, patch_file):
 
                 except:
 
-                    sys.stderr.write(current_time() + " File read error. Client connection closing...\n")
+                    sys.stderr.write(current_time() + " File read error. IoT device connection closing...\n")
                     quit()
                 
 
@@ -232,7 +226,7 @@ def update_file(command, client_socket, patch_file):
 
     except socket.error as e:
 
-        sys.stderr.write(current_time() + " Client connection closing...\n")
+        sys.stderr.write(current_time() + " IoT device connection closing...\n")
         quit()
 
 

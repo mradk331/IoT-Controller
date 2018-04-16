@@ -19,6 +19,8 @@ import  datetime
 
 BLOCK_SIZE = 1024
 
+
+# Retrieves the currently connected IoT device.
 def current_device(port):
 
     global devices
@@ -29,6 +31,8 @@ def current_device(port):
 
     return current_IoT_device
 
+
+# Part of the update process for storing the newly updated ID/device
 def update_device(port, filename):
 
     global devices
@@ -41,6 +45,7 @@ def update_device(port, filename):
     devices[str(port)] = filename[0]
 
 
+# Deals with a request message from the IoT Controller/client connection
 def request(client_socket, port):
 
     global devices
@@ -319,6 +324,7 @@ def string_generator():
 
     return ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(32))
 
+
 # Get the current time
 def current_time():
 
@@ -388,10 +394,13 @@ def authentication(secret_key, client_socket):
 
         return authenticated
 
+
 if __name__ == "__main__":
 
+    # Hardcoded "active" device for the prototype. In future iterations, a list would contain actual connected devices
     devices = {"9000" : "Webcam_1.1", "9001" : "Toaster_2.9", "9002" : "TV_1.12", "9003" : "Refrigerator_5.9", "9004" : "Thermostat_4.3"}
 
+    # Currently runs on local connection.
     HOST = "localhost"
 
     if len(sys.argv) != 3:
